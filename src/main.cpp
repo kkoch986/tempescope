@@ -4,7 +4,7 @@
  * Just implements a basic "blink" sketch.
  * on the esp32 dev board pin D2 controls the on-board LED.
  */
-#define LED_PIN 2
+#define LED_PIN IN_LED_PIN
 
 void setup() {
   pinMode(LED_PIN, OUTPUT);
