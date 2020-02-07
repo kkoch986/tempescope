@@ -17,9 +17,10 @@ board = esp32doit-devkit-v1
 framework = arduino
 ```
 
-Then when compiling add the `--env arduino` flag to the `pio` command.
+Then when compiling add the `-e arduino` flag to the `pio` command.
 
 There is a Makefile for the basic configuration, you can refer there for the basic commands.
+You can alter the default env of `esp32` by providing `PIOENV` in the environment.
 
 To compile run:
 
@@ -37,6 +38,12 @@ To drop into the Serial Monitor for the connected board:
 
 ```
 make logs
+```
+
+To upload to a specific environment
+
+```
+PIOENV=circuitplay_classic make upload
 ```
 
 ## Links
