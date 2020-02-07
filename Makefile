@@ -5,12 +5,12 @@ ifdef PIOENV
 endif
 
 compile: 
-	${PIO} run
+	${PIO} run ${ENVSTR}
 
 upload: 
 	${PIO} run --target=upload ${ENVSTR}
 
 logs: 
-	${PIO} device monitor -b 115200
+	${PIO} device monitor -b 115200 ${ENVSTR}
 
 .PHONY: compile upload logs
