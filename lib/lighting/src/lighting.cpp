@@ -1,123 +1,90 @@
 #include <lighting.h>
 
-FASTLED_USING_NAMESPACE
-
-// FastLED "100-lines-of-code" demo reel, showing just a few 
-// of the kinds of animation patterns you can quickly and easily 
-// compose using FastLED.  
-//
-// This example also shows one easy way to define multiple 
-// animations patterns and have them automatically rotate.
-//
-// -Mark Kriegsman, December 2014
-
-#if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
-#warning "Requires FastLED 3.1 or later; check github for latest code."
-#endif
-
 #define DATA_PIN    NEO_PIXEL_PIN
 #define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
 #define NUM_LEDS    NEO_PIXEL_COUNT
-CRGB leds[NUM_LEDS];
 
-#define BRIGHTNESS          96
+#define BRIGHTNESS          50
 #define FRAMES_PER_SECOND  120
 
+CRGB leds[NUM_LEDS];
+
+// minutes
+static const uint8_t dayLengthMin = DAY_LENGTH_MINUTES;
+static const float intervalMillis = ((float)(dayLengthMin * 60) / 256) * 1000;
+static uint8_t paletteIndex = 0;
+
+const TProgmemPalette16 dayPalette_p PROGMEM =
+{
+    CRGB::Black,
+    CRGB::Goldenrod,
+    CRGB::DarkSalmon,
+    CRGB::LightYellow,
+    CRGB::PaleGoldenrod,
+    CRGB::LightGoldenrodYellow,
+    CRGB::Cornsilk,
+    CRGB::Ivory,
+    CRGB::Cornsilk,
+    CRGB::LightGoldenrodYellow,
+    CRGB::PaleGoldenrod,
+    CRGB::LightYellow,
+    CRGB::DarkSalmon,
+    CRGB::Goldenrod,
+    CRGB::Black,
+};
+
+void lighting_test() 
+{
+  //
+  CRGB color = ColorFromPalette(dayPalette_p, paletteIndex, 255, LINEARBLEND);
+
+  // TODO: See how much this affects things...
+  // HighNoonSun, DirectSunlight, OvercastSky, ClearBlueSky,
+  FastLED.setTemperature(DirectSunlight);
+
+  // 
+  fill_solid(leds, NUM_LEDS, color);
+
+  //
+  EVERY_N_MILLISECONDS(intervalMillis) {    
+    if (paletteIndex < 255) {
+      paletteIndex++;
+    }
+
+    if (paletteIndex == 255) {
+      paletteIndex = 0;
+    }
+
+    Serial.print("Index: ");  
+    Serial.print(paletteIndex);  
+    Serial.println();  
+  }
+}
+
+void lighting_addLightning(fract8 chanceOfLightning) 
+{
+  if( random8() < chanceOfLightning) {
+    leds[random8(NUM_LEDS)] += CRGB::White;
+  }
+}
+
 void lighting_setup() {
-  delay(3000); // 3 second delay for recovery
+  // Initial delay for setup
+  delay(1000);
   
-  // tell FastLED about the LED strip configuration
+  // Tell FastLED about the LED strip configuration
   FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
-  // set master brightness control
+  // Set master brightness control
   FastLED.setBrightness(BRIGHTNESS);
-}
-
-uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
-uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-  
-void lighting_rainbow() 
-{
-  // FastLED's built-in rainbow generator
-  fill_rainbow( leds, NUM_LEDS, gHue, 7);
-}
-
-void lighting_addGlitter( fract8 chanceOfGlitter) 
-{
-  if( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB::White;
-  }
-}
-
-void lighting_rainbowWithGlitter() 
-{
-  // built-in FastLED rainbow, plus some random sparkly glitter
-  lighting_rainbow();
-  lighting_addGlitter(80);
-}
-
-void lighting_confetti() 
-{
-  // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( leds, NUM_LEDS, 10);
-  int pos = random16(NUM_LEDS);
-  leds[pos] += CHSV( gHue + random8(64), 200, 255);
-}
-
-void lighting_sinelon()
-{
-  // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( leds, NUM_LEDS, 20);
-  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
-  leds[pos] += CHSV( gHue, 255, 192);
-}
-
-void lighting_bpm()
-{
-  // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-  uint8_t BeatsPerMinute = 62;
-  CRGBPalette16 palette = PartyColors_p;
-  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-  for( int i = 0; i < NUM_LEDS; i++) { //9948
-    leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
-  }
-}
-
-void lighting_juggle() {
-  // eight colored dots, weaving in and out of sync with each other
-  fadeToBlackBy( leds, NUM_LEDS, 20);
-  byte dothue = 0;
-  for( int i = 0; i < 8; i++) {
-    leds[beatsin16( i+7, 0, NUM_LEDS-1 )] |= CHSV(dothue, 200, 255);
-    dothue += 32;
-  }
-}
-
-// List of patterns to cycle through.  Each is defined as a separate function below.
-typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { lighting_rainbow, lighting_rainbowWithGlitter, lighting_confetti, lighting_sinelon, lighting_juggle, lighting_bpm };
-
-#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-
-void lighting_nextPattern()
-{
-  // add one to the current pattern number, and wrap around at the end
-  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
 }
 
 void lighting_loop()
 {
-  // Call the current pattern function once, updating the 'leds' array
-  gPatterns[gCurrentPatternNumber]();
+  //
+  lighting_test();
 
-  // send the 'leds' array out to the actual LED strip
-  FastLED.show();  
-  // insert a delay to keep the framerate modest
-  FastLED.delay(1000/FRAMES_PER_SECOND); 
-
-  // do some periodic updates
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 10 ) { lighting_nextPattern(); } // change patterns periodically
+  //
+  FastLED.show();
 }
