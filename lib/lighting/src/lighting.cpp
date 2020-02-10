@@ -15,6 +15,7 @@ static const uint8_t dayLengthMin = DAY_LENGTH_MINUTES;
 static const float intervalMillis = ((float)(dayLengthMin * 60) / 256) * 1000;
 static uint8_t paletteIndex = 0;
 
+// https://github.com/FastLED/FastLED/wiki/Pixel-reference#colors
 const TProgmemPalette16 dayPalette_p PROGMEM =
 {
     CRGB::Black,
@@ -34,7 +35,28 @@ const TProgmemPalette16 dayPalette_p PROGMEM =
     CRGB::Black,
 };
 
-void lighting_test() 
+Lighting::Lighting() {}
+
+void Lighting::initialize(){
+  // Initial delay for setup
+  delay(1000);
+  
+  // Tell FastLED about the LED strip configuration
+  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+
+  // Set master brightness control
+  FastLED.setBrightness(BRIGHTNESS);
+}
+
+void Lighting::loop(){
+  //
+  render();
+
+  //
+  FastLED.show();
+}
+
+void Lighting::render() 
 {
   //
   CRGB color = ColorFromPalette(dayPalette_p, paletteIndex, 255, LINEARBLEND);
@@ -62,29 +84,9 @@ void lighting_test()
   }
 }
 
-void lighting_addLightning(fract8 chanceOfLightning) 
+void Lighting::addLightning(fract8 chanceOfLightning) 
 {
   if( random8() < chanceOfLightning) {
     leds[random8(NUM_LEDS)] += CRGB::White;
   }
-}
-
-void lighting_setup() {
-  // Initial delay for setup
-  delay(1000);
-  
-  // Tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-
-  // Set master brightness control
-  FastLED.setBrightness(BRIGHTNESS);
-}
-
-void lighting_loop()
-{
-  //
-  lighting_test();
-
-  //
-  FastLED.show();
 }

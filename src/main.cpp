@@ -3,19 +3,26 @@
 //
 #if defined ENABLE_LIGHTING
 #include <lighting.h>
+#include <weather.h>
+
+Weather *weather;
+Lighting *lighting;
 #endif
 
 void setup() {
   Serial.begin(9600);
-  
+
 #if defined ENABLE_LIGHTING
-  lighting_setup();
+  weather = new Weather();
+  lighting = new Lighting();
+
+  lighting->initialize();
 #endif
 }
 
 void loop() {
 
 #if defined ENABLE_LIGHTING
-  lighting_loop();
+  lighting->loop();
 #endif
 }
