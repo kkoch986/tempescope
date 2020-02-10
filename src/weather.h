@@ -15,7 +15,7 @@ class Weather {
   public:
   Weather();
   Weather(WeatherType weatherType);
-  WeatherType setWeatherType(WeatherType weatherType);
+  void setWeatherType(WeatherType weatherType);
   WeatherType getWeatherType();
   
   private:  

@@ -10,6 +10,6 @@ WeatherType Weather::getWeatherType(){
   return this->weatherType;
 }
 
-WeatherType Weather::setWeatherType(WeatherType weatherType){
+void Weather::setWeatherType(WeatherType weatherType){
   this->weatherType = weatherType;
 }
