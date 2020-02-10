@@ -5,37 +5,14 @@
 #define COLOR_ORDER GRB
 #define NUM_LEDS    NEO_PIXEL_COUNT
 
-#define BRIGHTNESS          50
-#define FRAMES_PER_SECOND  120
+#define BRIGHTNESS  50
 
 CRGB leds[NUM_LEDS];
 
-// minutes
-static const uint8_t dayLengthMin = DAY_LENGTH_MINUTES;
-static const float intervalMillis = ((float)(dayLengthMin * 60) / 256) * 1000;
-static uint8_t paletteIndex = 0;
-
-// https://github.com/FastLED/FastLED/wiki/Pixel-reference#colors
-const TProgmemPalette16 dayPalette_p PROGMEM =
-{
-    CRGB::Black,
-    CRGB::Goldenrod,
-    CRGB::DarkSalmon,
-    CRGB::LightYellow,
-    CRGB::PaleGoldenrod,
-    CRGB::LightGoldenrodYellow,
-    CRGB::Cornsilk,
-    CRGB::Ivory,
-    CRGB::Cornsilk,
-    CRGB::LightGoldenrodYellow,
-    CRGB::PaleGoldenrod,
-    CRGB::LightYellow,
-    CRGB::DarkSalmon,
-    CRGB::Goldenrod,
-    CRGB::Black,
-};
-
-Lighting::Lighting() {}
+Lighting::Lighting() {
+  this->dayLengthMin = DAY_LENGTH_MINUTES;
+  this->intervalMillis = ((float)(dayLengthMin * 60) / 256) * 1000;
+}
 
 void Lighting::initialize(){
   // Initial delay for setup
@@ -59,7 +36,7 @@ void Lighting::loop(){
 void Lighting::render() 
 {
   //
-  CRGB color = ColorFromPalette(dayPalette_p, paletteIndex, 255, LINEARBLEND);
+  CRGB color = ColorFromPalette(dayPalette, this->paletteIndex, 255, LINEARBLEND);
 
   // TODO: See how much this affects things...
   // HighNoonSun, DirectSunlight, OvercastSky, ClearBlueSky,
@@ -69,17 +46,17 @@ void Lighting::render()
   fill_solid(leds, NUM_LEDS, color);
 
   //
-  EVERY_N_MILLISECONDS(intervalMillis) {    
-    if (paletteIndex < 255) {
-      paletteIndex++;
+  EVERY_N_MILLISECONDS(this->intervalMillis) {    
+    if (this->paletteIndex < 255) {
+      this->paletteIndex++;
     }
 
-    if (paletteIndex == 255) {
-      paletteIndex = 0;
+    if (this->paletteIndex == 255) {
+      this->paletteIndex = 0;
     }
 
     Serial.print("Index: ");  
-    Serial.print(paletteIndex);  
+    Serial.print(this->paletteIndex);  
     Serial.println();  
   }
 }
